@@ -164,10 +164,8 @@ normality_qqplot <- function(y,
            "sqrt" = sqrt(data),
            "inverse" = 1 / data,
            "yeojohnson" = {
-             result <- bestNormalize(data, standardize = FALSE)
-             xt <- result$x.t
-             if (is.list(xt)) xt <- unlist(xt)
-             as.numeric(xt)
+             result <- yeojohnson(data, standardize = FALSE)
+             as.numeric(result$x.t)
            },
            "zscore" = as.numeric(scale(data)),
            stop("❌ Transformación no reconocida.")
@@ -229,6 +227,8 @@ normality_qqplot <- function(y,
     message(paste0("✅ Gráfico guardado en: ", file.path(save_path, fname)))
   }
 }
+
+
 
 
 
