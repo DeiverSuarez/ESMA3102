@@ -1,3 +1,5 @@
+#funcion 1
+
 box_summary <- function(numeric_var, group_var = NULL, return.graph = TRUE) {
   
   # --------------------- Verificar e informar si faltan paquetes ---------------------
@@ -122,7 +124,111 @@ box_summary <- function(numeric_var, group_var = NULL, return.graph = TRUE) {
   }
 }
 
-
+# funcion 2
+normality_qqplot <- function(y,
+                             datax = FALSE,
+                             distribution = qnorm,
+                             probs = c(0.25, 0.75),
+                             qtype = 7,
+                             transformation = "none",  # solo una
+                             save = FALSE,
+                             save_path = ".",
+                             filename_prefix = "qqplot",
+                             save_format = "png",
+                             dpi = 300,
+                             width = 6,
+                             height = 6) {
+  
+  # --------- 1. Verificar paquetes necesarios ---------
+  required_pkgs <- c("ggplot2", "car", "bestNormalize", "scales")
+  missing_pkgs <- required_pkgs[!required_pkgs %in% installed.packages()[, "Package"]]
+  if (length(missing_pkgs) > 0) {
+    message("⚠️ Paquetes faltantes:\n")
+    cat(paste0("📦 ", missing_pkgs, collapse = "\n"), "\n\n")
+    message("Puedes instalarlos con:\n")
+    cat("install.packages(c(\"", paste(missing_pkgs, collapse = "\", \""), "\"))\n", sep = "")
+    stop("⛔ Por favor instala los paquetes requeridos antes de continuar.")
+  }
+  
+  # Cargar paquetes
+  library(ggplot2)
+  library(car)
+  library(bestNormalize)
+  library(scales)
+  
+  # --------- 2. Función auxiliar de transformación ---------
+  apply_transformation <- function(data, method) {
+    switch(method,
+           "none" = data,
+           "log" = log(data),
+           "sqrt" = sqrt(data),
+           "inverse" = 1 / data,
+           "yeojohnson" = {
+             result <- bestNormalize(data, standardize = FALSE)
+             xt <- result$x.t
+             if (is.list(xt)) xt <- unlist(xt)
+             as.numeric(xt)
+           },
+           "zscore" = as.numeric(scale(data)),
+           stop("❌ Transformación no reconocida.")
+    )
+  }
+  
+  # --------- 3. Función auxiliar para crear Q-Q plot ---------
+  create_qqplot <- function(data, title_suffix) {
+    df <- data.frame(y = sort(data),
+                     x = sort(distribution(ppoints(length(data)))))
+    if (datax) {
+      names(df) <- c("x", "y")
+    }
+    
+    # Línea de referencia
+    q <- quantile(data, probs = probs, type = qtype, na.rm = TRUE)
+    theo_q <- distribution(probs)
+    slope <- diff(q) / diff(theo_q)
+    intercept <- q[1L] - slope * theo_q[1L]
+    
+    ggplot(df, aes(x = x, y = y)) +
+      geom_point(size = 2, color = "blue") +
+      geom_abline(slope = slope, intercept = intercept, color = "red", size = 1) +
+      labs(title = paste("Normal Q-Q Plot -", title_suffix),
+           x = ifelse(datax, "Sample Quantiles", "Theoretical Quantiles"),
+           y = ifelse(datax, "Theoretical Quantiles", "Sample Quantiles")) +
+      theme_bw() +
+      theme(
+        plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.title = element_text(face = "bold"),
+        axis.text = element_text(face = "bold")
+      )
+  }
+  
+  # --------- 4. Validación de entrada ---------
+  y <- na.omit(y)
+  if (!is.numeric(y)) stop("El vector de datos debe ser numérico.")
+  
+  # Verificar valores positivos si es necesario
+  if (transformation %in% c("log", "sqrt", "inverse") && any(y <= 0)) {
+    stop("❌ Para aplicar log, sqrt o inverse, los datos deben ser positivos.")
+  }
+  
+  # --------- 5. Aplicar transformación y generar gráfico ---------
+  transformed <- tryCatch(apply_transformation(y, transformation), error = function(e) {
+    message("⚠️ Error en transformación: ", conditionMessage(e))
+    return(NULL)
+  })
+  
+  if (is.null(transformed)) return(NULL)
+  
+  p <- create_qqplot(transformed, transformation)
+  print(p)
+  
+  if (save) {
+    fname <- paste0(filename_prefix, "_", transformation, ".", save_format)
+    ggsave(filename = fname, plot = p, path = save_path,
+           dpi = dpi, width = width, height = height)
+    message(paste0("✅ Gráfico guardado en: ", file.path(save_path, fname)))
+  }
+}
 
 
 
