@@ -113,9 +113,13 @@ box_summary <- function(numeric_var, group_var = NULL, return.graph = TRUE) {
 }
 
 
+# Cargar el directorio de trabajo
+
+setwd("Pathname")
+
 # Cargar los datos
 
-dataset <- read_csv("Pathname")
+dataset <- read_csv("healthcare-dataset-stroke-data.csv")
 
 # Example 1: Only numeric variable (simple boxplot)
 box_summary(dataset$avg_glucose_level)
