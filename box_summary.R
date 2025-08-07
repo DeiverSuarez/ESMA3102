@@ -115,23 +115,19 @@ box_summary <- function(numeric_var, group_var = NULL, return.graph = TRUE) {
 
 # Cargar los datos
 
-library(readr)
-dataset <- read_csv("Documents/ESMA 3102/Clase 2/healthcare-dataset-stroke-data.csv")
-
-box_summary(dataset$avg_glucose_level)
-
+dataset <- read_csv("Pathname")
 
 # Example 1: Only numeric variable (simple boxplot)
-box_summary(mtcars$mpg)
+box_summary(dataset$avg_glucose_level)
 
 # Example 2: Numeric and categorical variable (grouped boxplot)
-box_summary(mtcars$mpg, mtcars$cyl)
+box_summary(dataset$avg_glucose_level, dataset$work_type)
 
 # Example 3: Only numeric variable, summary table
-box_summary(mtcars$mpg, return.graph = FALSE)
+box_summary(dataset$avg_glucose_level, return.graph = FALSE)
 
 # Example 4: Numeric and categorical variable, grouped summary table
-box_summary(mtcars$mpg, mtcars$cyl, return.graph = FALSE)
+box_summary(dataset$avg_glucose_level, dataset$work_type, return.graph = FALSE)
 
 
 
