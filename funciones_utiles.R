@@ -296,7 +296,7 @@ scatter_with_marginals <- function(x,
     p <- p + annotate(
       "text",
       x = x_pos, y = y_pos,
-      label = "Tendencia: LM",
+      label = "",
       hjust = 0, vjust = 1, fontface = "bold"
     )
   }
@@ -315,6 +315,7 @@ scatter_with_marginals <- function(x,
     return(p)
   }
 }
+
 
 
 
