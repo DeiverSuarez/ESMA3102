@@ -228,7 +228,93 @@ normality_qqplot <- function(y,
   }
 }
 
+# funcion 3
 
+scatter_with_marginals <- function(x,
+                                   y,
+                                   add_trend = TRUE,
+                                   conf_band = FALSE,     # <- Nuevo parámetro
+                                   add_marginals = TRUE,
+                                   point_size = 1,
+                                   title = NULL,
+                                   xlab = NULL,
+                                   ylab = NULL) {
+  
+  # -------------------- 0) Verificar paquetes --------------------
+  required_pkgs <- c("ggplot2", "ggExtra")
+  missing_pkgs <- setdiff(required_pkgs, rownames(utils::installed.packages()))
+  if (length(missing_pkgs) > 0) {
+    message("⚠️ Paquetes faltantes:\n  ", paste(missing_pkgs, collapse = ", "))
+    message("\nInstálalos con:\n  install.packages(c(\"",
+            paste(missing_pkgs, collapse = "\", \""), "\"))")
+    stop("⛔ Por favor instala los paquetes requeridos y vuelve a ejecutar la función.")
+  }
+  
+  suppressPackageStartupMessages({
+    library(ggplot2)
+    library(ggExtra)
+  })
+  
+  # -------------------- 1) Validaciones --------------------
+  if (!is.numeric(x)) {
+    stop("⛔ El argumento 'x' debe ser un vector numérico.")
+  }
+  if (!is.numeric(y)) {
+    stop("⛔ El argumento 'y' debe ser un vector numérico.")
+  }
+  if (length(x) != length(y)) {
+    stop("⛔ 'x' e 'y' deben tener la misma longitud.")
+  }
+  
+  # Crear data.frame interno
+  df <- data.frame(x = x, y = y)
+  
+  if (is.null(title)) title <- "Scatterplot"
+  if (is.null(xlab))  xlab  <- "X"
+  if (is.null(ylab))  ylab  <- "Y"
+  
+  # -------------------- 2) Scatterplot base --------------------
+  p <- ggplot(df, aes(x = x, y = y)) +
+    geom_point(alpha = 0.9, size = point_size) +
+    labs(title = title, x = xlab, y = ylab) +
+    theme_bw(base_size = 14) +
+    theme(
+      plot.title = element_text(face = "bold", size = 18),
+      axis.title = element_text(face = "bold", size = 14),
+      axis.text  = element_text(face = "bold")
+    )
+  
+  # -------------------- 3) Línea de tendencia (lm por defecto) --------------------
+  if (add_trend) {
+    p <- p + geom_smooth(method = "lm", se = conf_band)
+    
+    xr <- range(df$x, na.rm = TRUE)
+    yr <- range(df$y, na.rm = TRUE)
+    x_pos <- xr[1] + 0.02 * diff(xr)
+    y_pos <- yr[2] - 0.05 * diff(yr)
+    
+    p <- p + annotate(
+      "text",
+      x = x_pos, y = y_pos,
+      label = "Tendencia: LM",
+      hjust = 0, vjust = 1, fontface = "bold"
+    )
+  }
+  
+  # -------------------- 4) Boxplots marginales azules --------------------
+  if (add_marginals) {
+    m <- ggMarginal(
+      p,
+      type = "boxplot",
+      margins = "both",
+      xparams = list(fill = "blue", color = "black"),
+      yparams = list(fill = "blue", color = "black")
+    )
+    return(m)
+  } else {
+    return(p)
+  }
+}
 
 
 
